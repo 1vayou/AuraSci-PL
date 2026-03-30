@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange: #f97316;
+  --orange-light: #fb923c;
+  --emerald: #10b981;
+  --gray-dark: #111827;
+}
+
+@layer base {
+  body { @apply bg-white text-gray-900 antialiased; }
+  * { @apply border-gray-200; }
+}
+
+@layer utilities {
+  /* Gradient backgrounds */
+  .hero-gradient {
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(249,115,22,0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(16,185,129,0.04), transparent);
+  }
+  .grid-pattern {
+    background-image: linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Glow / shadow */
+  .aura-shadow { box-shadow: 0 4px 24px -4px rgba(249,115,22,0.08), 0 1px 3px rgba(0,0,0,0.06); }
+  .aura-shadow-lg { box-shadow: 0 8px 40px -8px rgba(249,115,22,0.15), 0 2px 8px rgba(0,0,0,0.08); }
+  .protocol-glow { box-shadow: 0 0 20px rgba(249,115,22,0.12), 0 0 40px rgba(249,115,22,0.06); }
+  .ipfs-glow { box-shadow: 0 0 16px rgba(16,185,129,0.15); }
+
+  /* Badges */
+  .badge-erc8004 {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+           bg-orange-50 text-orange-600 border border-orange-200;
+  }
+  .badge-erc8183 {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+           bg-purple-50 text-purple-600 border border-purple-200;
+  }
+  .badge-ipfs {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+           bg-emerald-50 text-emerald-600 border border-emerald-200;
+  }
+  .badge-x402 {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+           bg-blue-50 text-blue-600 border border-blue-200;
+  }
+
+  /* Animations */
+  .shield-pulse { animation: shieldPulse 2s ease-in-out infinite; }
+  @keyframes shieldPulse {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px rgba(16,185,129,0.4)); }
+    50%       { opacity: 0.7; filter: drop-shadow(0 0 8px rgba(16,185,129,0.7)); }
+  }
+  .tx-flash { animation: txFlash 0.6s ease-out; }
+  @keyframes txFlash {
+    0%   { background: rgba(249,115,22,0.15); }
+    100% { background: transparent; }
+  }
+  .ipfs-ping {
+    animation: ipfsPing 1.5s ease-out infinite;
+  }
+  @keyframes ipfsPing {
+    0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  }
+
+  /* Card hover */
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.015] hover:shadow-lg;
+  }
+
+  /* Scrollbar */
+  .slim-scroll::-webkit-scrollbar { width: 4px; }
+  .slim-scroll::-webkit-scrollbar-track { background: transparent; }
+  .slim-scroll::-webkit-scrollbar-thumb { @apply bg-gray-200 rounded-full; }
+
+  /* Milestone status colours */
+  .ms-locked       { @apply bg-gray-100 text-gray-400 border-gray-200; }
+  .ms-in-progress  { @apply bg-orange-50 text-orange-600 border-orange-200; }
+  .ms-submitted    { @apply bg-blue-50 text-blue-600 border-blue-200; }
+  .ms-verified     { @apply bg-emerald-50 text-emerald-600 border-emerald-200; }
+  .ms-released     { @apply bg-purple-50 text-purple-600 border-purple-200; }
+
+  /* Truncate CID */
+  .cid { @apply font-mono text-xs text-gray-400 truncate; }
+}

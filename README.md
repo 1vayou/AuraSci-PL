@@ -2,7 +2,7 @@
 
 Milestone-based open science funding powered by AI Agents.
 
-**Live:** https://aurasci-pl.vercel.app
+**Live:** https://aura-sci-pl-47wr.vercel.app
 
 ## Protocol Stack
 
@@ -104,7 +104,7 @@ X402_FACILITATOR_URL=https://x402.org/facilitator
 X402_PAY_TO=0xYourBaseSepolia...  # Wallet that receives USDC payments
 
 # App
-NEXT_PUBLIC_APP_URL=https://aurasci-pl.vercel.app
+NEXT_PUBLIC_APP_URL=https://aura-sci-pl-47wr.vercel.app
 NEXT_PUBLIC_WALLETCONNECT_ID=    # From cloud.walletconnect.com
 NEXT_PUBLIC_RPC_URL=https://api.calibration.node.glif.io/rpc/v1
 ```

@@ -1,22 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-03-25.dahlia',
-  });
-}
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  try {
-    const stripe = getStripe();
-    const { intentId, intentTitle, ticker, amountUSDC } = await req.json();
+  const { intentId, intentTitle, ticker, amountUSDC } = await req.json();
 
-    if (!amountUSDC || amountUSDC <= 0) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
-    }
+  if (!amountUSDC || amountUSDC <= 0) {
+    return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+
+  // ── No Stripe key → demo mode ──────────────────────────────────────────
+  if (!process.env.STRIPE_SECRET_KEY) {
+    const demoSessionId = `demo_${Date.now()}`;
+    const successUrl = `${appUrl}/payment/success?session_id=${demoSessionId}&intent_id=${intentId}&amount=${amountUSDC}`;
+    return NextResponse.json({
+      sessionId: demoSessionId,
+      url: successUrl,
+      demo: true,
+    });
+  }
+
+  // ── Real Stripe checkout ───────────────────────────────────────────────
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2026-03-25.dahlia',
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -28,19 +39,15 @@ export async function POST(req: NextRequest) {
               name: `Fund ${ticker} — ${intentTitle}`,
               description: `EIP-8183 Escrow funding for research intent ${ticker}`,
             },
-            unit_amount: Math.round(amountUSDC * 100), // Stripe uses cents
+            unit_amount: Math.round(amountUSDC * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&intent_id=${intentId}&amount=${amountUSDC}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/intent/${intentId}?payment=cancelled`,
-      metadata: {
-        intentId,
-        ticker,
-        amountUSDC: String(amountUSDC),
-      },
+      success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&intent_id=${intentId}&amount=${amountUSDC}`,
+      cancel_url: `${appUrl}/intent/${intentId}?payment=cancelled`,
+      metadata: { intentId, ticker, amountUSDC: String(amountUSDC) },
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });

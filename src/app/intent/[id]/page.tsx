@@ -5,10 +5,11 @@ import { useState } from "react";
 import { useAppStore } from "@/store";
 import {
   ArrowLeft, Database, Lock, Zap, CheckCircle2, Clock, AlertCircle,
-  ExternalLink, Users, Star, Loader2, ShieldCheck, Cpu, Coins,
+  ExternalLink, Users, Star, Loader2, ShieldCheck, Cpu, Coins, CreditCard, Wallet,
 } from "lucide-react";
 import ProtocolBadges from "@/components/ProtocolBadges";
 import IPFSUploader from "@/components/IPFSUploader";
+import PaymentModal from "@/components/PaymentModal";
 import type { MilestoneStatus, IPFSUploadResult } from "@/types";
 import { NETWORK } from "@/lib/protocol";
 
@@ -31,8 +32,7 @@ export default function IntentPage() {
   const boostIntent     = useAppStore((s) => s.boostIntent);
 
   const [verifying, setVerifying] = useState<string | null>(null);
-  const [patronAmount, setPatronAmount] = useState("500");
-  const [patronLoading, setPatronLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [x402Loading, setX402Loading] = useState(false);
   const [x402Data, setX402Data] = useState<string | null>(null);
   const [uploadedCid, setUploadedCid] = useState<string | null>(null);
@@ -72,19 +72,16 @@ export default function IntentPage() {
     }
   };
 
-  // Patron fund
-  const handlePatron = async () => {
-    const amount = parseInt(patronAmount);
-    if (!amount || amount <= 0) return;
-    setPatronLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
+  // Payment success handler (both Stripe and Crypto)
+  const handlePaymentSuccess = (method: 'card' | 'crypto', amount: number, txHash?: string) => {
     addPatronage(intent.id, {
-      id: `patron_${Date.now()}`,
-      name: "You",
+      id: `${method}_${Date.now()}`,
+      name: method === 'card' ? 'Stripe Patron' : 'Crypto Patron',
       amountUSDC: amount,
-      escrowTxHash: `0xEscrow${Date.now().toString(16)}`,
+      escrowTxHash: txHash ?? `0xEscrow${Date.now().toString(16)}`,
+      walletAddress: method === 'crypto' ? txHash : undefined,
     });
-    setPatronLoading(false);
+    setShowPaymentModal(false);
   };
 
   // x402 data access demo
@@ -279,21 +276,16 @@ export default function IntentPage() {
               <p className="text-xs text-gray-400 mt-1">Goal: ${intent.fundingGoalUSDC.toLocaleString()} USDC</p>
             </div>
 
-            <div className="flex gap-2 mt-3">
-              <input
-                value={patronAmount}
-                onChange={(e) => setPatronAmount(e.target.value)}
-                type="number" min="1"
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-300"
-                placeholder="USDC amount"
-              />
-              <button onClick={handlePatron} disabled={patronLoading}
-                className="px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-60 flex items-center gap-1.5">
-                {patronLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Coins className="w-3.5 h-3.5" />}
-                Fund
-              </button>
+            <button onClick={() => setShowPaymentModal(true)}
+              className="w-full mt-3 flex items-center justify-center gap-2 py-3 bg-orange-500 text-white text-sm font-semibold rounded-xl hover:bg-orange-600 transition-colors">
+              <Coins className="w-4 h-4" />
+              Fund This Research
+            </button>
+            <div className="flex gap-2 mt-2">
+              <span className="flex items-center gap-1 text-xs text-gray-400"><CreditCard className="w-3 h-3" />Card</span>
+              <span className="flex items-center gap-1 text-xs text-gray-400"><Wallet className="w-3 h-3" />USDC</span>
+              <span className="ml-auto text-xs text-gray-400">Escrow-protected</span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Escrow-protected · Released on milestone verification</p>
 
             {/* Patrons */}
             {intent.patrons && intent.patrons.length > 0 && (
@@ -367,6 +359,16 @@ export default function IntentPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+        intentId={intent.id}
+        intentTitle={intent.title}
+        ticker={intent.ticker}
+      />
     </div>
   );
 }

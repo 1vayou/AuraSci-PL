@@ -6,7 +6,7 @@
  */
 
 import type {
-  ERC8004Agent, ERC8183EscrowJob, X402PaymentChallenge, IPFSUploadResult
+  ERC8004Agent, ERC8183EscrowJob, IPFSUploadResult
 } from '@/types';
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -121,46 +121,10 @@ export function releaseEscrow(job: ERC8183EscrowJob): ERC8183EscrowJob {
   };
 }
 
-// ── x402 Payment Middleware ───────────────────────────────────────────────────
-
-/**
- * Generates an x402 HTTP 402 payment challenge for a protected API endpoint.
- * Used as middleware in Next.js API routes.
- */
-export function buildX402Challenge(
-  resource: string,
-  amountUSDC: number,
-  description: string,
-): X402PaymentChallenge {
-  return {
-    type: 'X402',
-    accepts: [
-      {
-        scheme: 'exact',
-        network: 'base-sepolia',
-        maxAmountRequired: String(Math.round(amountUSDC * 1_000_000)), // USDC 6 decimals
-        resource,
-        description,
-        mimeType: 'application/json',
-        payTo: '0xAuraSci000000000000000000000000000000001',
-        maxTimeoutSeconds: 300,
-        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC on Base Sepolia
-        extra: { name: 'USDC', version: '2' },
-      },
-    ],
-    error: 'Payment required to access this AuraSci research endpoint',
-  };
-}
-
-/**
- * Simulates verifying an x402 payment header.
- * In production this would verify the on-chain USDC transfer.
- */
-export function verifyX402Payment(paymentHeader: string | null): boolean {
-  if (!paymentHeader) return false;
-  // Demo: any non-empty header is accepted
-  return paymentHeader.startsWith('X402-');
-}
+// ── x402 Payment ─────────────────────────────────────────────────────────────
+// Real x402 integration lives in @/lib/x402.ts (uses @x402/core + @x402/evm).
+// The API route /api/x402 handles facilitator-verified payments on Base Sepolia.
+// See src/lib/x402.ts for config and src/app/api/x402/route.ts for the handler.
 
 // ── IPFS CID utilities ────────────────────────────────────────────────────────
 

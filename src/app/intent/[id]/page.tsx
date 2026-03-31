@@ -12,6 +12,9 @@ import IPFSUploader from "@/components/IPFSUploader";
 import PaymentModal from "@/components/PaymentModal";
 import type { MilestoneStatus, IPFSUploadResult } from "@/types";
 import { NETWORK } from "@/lib/protocol";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { payAndFetch } from "@/lib/x402-client";
 
 const STATUS_CONFIG: Record<MilestoneStatus, { label: string; color: string; icon: React.ReactNode }> = {
   locked:           { label: "Locked",           color: "ms-locked",      icon: <Lock className="w-3.5 h-3.5" /> },
@@ -35,7 +38,13 @@ export default function IntentPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [x402Loading, setX402Loading] = useState(false);
   const [x402Data, setX402Data] = useState<string | null>(null);
+  const [x402Error, setX402Error] = useState<string | null>(null);
   const [uploadedCid, setUploadedCid] = useState<string | null>(null);
+
+  // Wallet hooks for x402 payment
+  const { isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
 
   if (!intent) {
     return (
@@ -84,21 +93,26 @@ export default function IntentPage() {
     setShowPaymentModal(false);
   };
 
-  // x402 data access demo
+  // x402 payment — real wallet-signed flow via @x402/core + @x402/evm
   const handleX402 = async () => {
+    if (!walletClient || !publicClient) return;
     setX402Loading(true);
     setX402Data(null);
+    setX402Error(null);
     try {
-      const res = await fetch("/api/x402", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Payment": `X402-Demo-${Date.now()}`,
-        },
-        body: JSON.stringify({ resource: `/intents/${id}/data`, intentId: id }),
-      });
-      const data = await res.json();
-      setX402Data(JSON.stringify(data.data?.premiumData ?? data, null, 2));
+      const result = await payAndFetch(
+        "/api/x402",
+        { resource: `/intents/${id}/data`, intentId: id },
+        walletClient,
+        publicClient,
+      );
+      if (result.ok) {
+        setX402Data(JSON.stringify(result.data, null, 2));
+      } else {
+        setX402Error((result.data as { error?: string })?.error ?? "Payment failed");
+      }
+    } catch (err) {
+      setX402Error(err instanceof Error ? err.message : "Payment failed");
     } finally {
       setX402Loading(false);
     }
@@ -240,18 +254,28 @@ export default function IntentPage() {
             </div>
             <p className="text-sm text-gray-500 mb-4">
               Access full datasets and AI analysis reports via x402 micropayments (0.50 USDC).
-              Demonstrates HTTP 402 challenge/response on Base Sepolia.
+              Pays via wallet signature → facilitator verifies → settles on Base Sepolia.
             </p>
             {x402Data ? (
               <div className="bg-gray-900 rounded-xl p-4">
                 <pre className="text-xs text-emerald-400 overflow-auto slim-scroll max-h-40">{x402Data}</pre>
               </div>
+            ) : !isConnected ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-400">Connect your wallet to pay with x402</p>
+                <ConnectButton />
+              </div>
             ) : (
-              <button onClick={handleX402} disabled={x402Loading}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60">
-                {x402Loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                Pay 0.50 USDC via x402 · Access Data
-              </button>
+              <div className="space-y-3">
+                <button onClick={handleX402} disabled={x402Loading || !walletClient}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60">
+                  {x402Loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                  {x402Loading ? "Signing & settling…" : "Pay 0.50 USDC via x402 · Access Data"}
+                </button>
+                {x402Error && (
+                  <p className="text-xs text-red-500">{x402Error}</p>
+                )}
+              </div>
             )}
           </div>
         </div>

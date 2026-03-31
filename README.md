@@ -2,7 +2,7 @@
 
 Milestone-based open science funding powered by AI Agents.
 
-**Live:** https://aura-sci-pl-47wr.vercel.app
+**Live:** [https://aura-sci-pl-47wr.vercel.app](https://aurasci-pl.vercel.app/)
 
 ## Protocol Stack
 

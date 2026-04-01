@@ -12,8 +12,10 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
-  // ── No Stripe key → demo mode ──────────────────────────────────────────
-  if (!process.env.STRIPE_SECRET_KEY) {
+  // ── No valid Stripe key → demo mode ────────────────────────────────────
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const hasValidKey = stripeKey && stripeKey.startsWith('sk_') && stripeKey.length > 20;
+  if (!hasValidKey) {
     const demoSessionId = `demo_${Date.now()}`;
     const successUrl = `${appUrl}/payment/success?session_id=${demoSessionId}&intent_id=${intentId}&amount=${amountUSDC}`;
     return NextResponse.json({
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   // ── Real Stripe checkout ───────────────────────────────────────────────
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    const stripe = new Stripe(stripeKey!, {
       apiVersion: '2026-03-25.dahlia',
     });
 

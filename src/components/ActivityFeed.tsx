@@ -3,6 +3,7 @@
 import { useAppStore } from "@/store";
 import { Database, ShieldCheck, Coins, FileText, Zap, Bot, Unlock, Flame } from "lucide-react";
 import type { ActivityType } from "@/types";
+import { isRealCid } from "@/components/ProtocolBadges";
 
 const ICONS: Record<ActivityType, React.ReactNode> = {
   patronage:         <Coins className="w-3.5 h-3.5 text-orange-500" />,
@@ -40,11 +41,17 @@ export default function ActivityFeed({ limit = 12 }: { limit?: number }) {
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-gray-400">{timeAgo(log.timestamp)}</span>
               {log.ipfsCid && (
-                <a href={`https://w3s.link/ipfs/${log.ipfsCid}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-emerald-500 hover:underline font-mono">
-                  {log.ipfsCid.slice(0, 12)}…
-                </a>
+                isRealCid(log.ipfsCid) ? (
+                  <a href={`https://w3s.link/ipfs/${log.ipfsCid}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-emerald-500 hover:underline font-mono">
+                    {log.ipfsCid.slice(0, 12)}…
+                  </a>
+                ) : (
+                  <span className="text-xs text-emerald-500 font-mono">
+                    {log.ipfsCid.slice(0, 12)}…
+                  </span>
+                )
               )}
               {log.txHash && (
                 <span className="text-xs text-gray-300 font-mono">{log.txHash.slice(0, 10)}…</span>

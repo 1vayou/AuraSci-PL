@@ -33,7 +33,7 @@ export default function LandingPage() {
           <span className="text-xs text-gray-400 font-medium ml-1">PL Hackathon</span>
         </div>
         <div className="flex items-center gap-3">
-          <a href="https://w3s.link/ipfs/QmXyZ7a8Bk9Lm2Np4Qr6Ts1Uv3Wx5Yz0Ab2Cd4Ef6Gh8Ij"
+          <a href="/api/ipfs"
             target="_blank" rel="noopener noreferrer"
             className="badge-ipfs text-xs gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
             <Database className="w-3 h-3" /> IPFS Live

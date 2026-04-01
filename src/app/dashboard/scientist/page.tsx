@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store";
+import { isRealCid } from "@/components/ProtocolBadges";
 import {
   Plus, Database, Cpu, Lock, Zap, TrendingUp, CheckCircle2,
   Clock, ExternalLink, ArrowRight, Flame,
@@ -84,12 +85,18 @@ export default function ScientistDashboard() {
                   <p className="text-xs text-gray-400">Reputation</p>
                 </div>
                 {profile.agentManifestCid && (
-                  <a href={`https://w3s.link/ipfs/${profile.agentManifestCid}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="badge-ipfs hover:opacity-80 transition-opacity cursor-pointer">
-                    <Database className="w-3 h-3" />agent.json
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
+                  isRealCid(profile.agentManifestCid) ? (
+                    <a href={`https://w3s.link/ipfs/${profile.agentManifestCid}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="badge-ipfs hover:opacity-80 transition-opacity cursor-pointer">
+                      <Database className="w-3 h-3" />agent.json
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  ) : (
+                    <span className="badge-ipfs">
+                      <Database className="w-3 h-3" />agent.json
+                    </span>
+                  )
                 )}
                 <span className="badge-erc8004"><Cpu className="w-3 h-3" />{NETWORK.name}</span>
               </div>

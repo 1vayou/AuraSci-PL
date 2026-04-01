@@ -12,6 +12,7 @@ import IPFSUploader from "@/components/IPFSUploader";
 import PaymentModal from "@/components/PaymentModal";
 import type { MilestoneStatus, IPFSUploadResult } from "@/types";
 import { NETWORK } from "@/lib/protocol";
+import { isRealCid } from "@/components/ProtocolBadges";
 import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { payAndFetch } from "@/lib/x402-client";
@@ -185,11 +186,17 @@ export default function IntentPage() {
                     {/* IPFS CID + tx */}
                     {ms.ipfsCid && (
                       <div className="flex items-center gap-2 mt-2">
-                        <a href={`https://w3s.link/ipfs/${ms.ipfsCid}`} target="_blank" rel="noopener noreferrer"
-                          className="badge-ipfs hover:opacity-80 transition-opacity text-xs">
-                          <Database className="w-3 h-3" />{ms.ipfsCid.slice(0, 16)}…
-                          <ExternalLink className="w-2.5 h-2.5" />
-                        </a>
+                        {isRealCid(ms.ipfsCid) ? (
+                          <a href={`https://w3s.link/ipfs/${ms.ipfsCid}`} target="_blank" rel="noopener noreferrer"
+                            className="badge-ipfs hover:opacity-80 transition-opacity text-xs">
+                            <Database className="w-3 h-3" />{ms.ipfsCid.slice(0, 16)}…
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        ) : (
+                          <span className="badge-ipfs text-xs" title={`Demo CID: ${ms.ipfsCid}`}>
+                            <Database className="w-3 h-3" />{ms.ipfsCid.slice(0, 16)}…
+                          </span>
+                        )}
                         {ms.verificationTxHash && (
                           <a href={`${NETWORK.explorer}${ms.verificationTxHash}`}
                             target="_blank" rel="noopener noreferrer"
@@ -348,12 +355,18 @@ export default function IntentPage() {
                     <span className="ml-1 text-orange-400">★{scientist.reputationScore}</span>
                   </div>
                   {scientist.agentManifestCid && (
-                    <a href={`https://w3s.link/ipfs/${scientist.agentManifestCid}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="badge-ipfs w-full justify-center hover:opacity-80 transition-opacity cursor-pointer">
-                      <Database className="w-3 h-3" />agent.json manifest
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
+                    isRealCid(scientist.agentManifestCid) ? (
+                      <a href={`https://w3s.link/ipfs/${scientist.agentManifestCid}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="badge-ipfs w-full justify-center hover:opacity-80 transition-opacity cursor-pointer">
+                        <Database className="w-3 h-3" />agent.json manifest
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    ) : (
+                      <span className="badge-ipfs w-full justify-center">
+                        <Database className="w-3 h-3" />agent.json manifest
+                      </span>
+                    )
                   )}
                 </div>
               )}

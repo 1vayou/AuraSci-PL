@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store";
 import { ArrowLeft, Lock, TrendingUp, Database, Zap, Coins, ExternalLink } from "lucide-react";
+import { isRealCid } from "@/components/ProtocolBadges";
 import ActivityFeed from "@/components/ActivityFeed";
 import ProtocolBadges from "@/components/ProtocolBadges";
 
@@ -89,13 +90,19 @@ export default function PatronDashboard() {
 
                   {intent.ipfsCid && (
                     <div className="mt-2">
-                      <a href={`https://w3s.link/ipfs/${intent.ipfsCid}`}
-                        target="_blank" rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="badge-ipfs hover:opacity-80 transition-opacity inline-flex">
-                        <Database className="w-3 h-3" />IPFS Verified
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
+                      {isRealCid(intent.ipfsCid) ? (
+                        <a href={`https://w3s.link/ipfs/${intent.ipfsCid}`}
+                          target="_blank" rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="badge-ipfs hover:opacity-80 transition-opacity inline-flex">
+                          <Database className="w-3 h-3" />IPFS Verified
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      ) : (
+                        <span className="badge-ipfs inline-flex">
+                          <Database className="w-3 h-3" />IPFS Pinned
+                        </span>
+                      )}
                     </div>
                   )}
                 </button>

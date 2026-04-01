@@ -3,6 +3,19 @@
 import { Database, Cpu, Lock, Zap, ExternalLink, CheckCircle2 } from "lucide-react";
 import { NETWORK } from "@/lib/protocol";
 
+/** Demo CIDs are fake — only real Storacha uploads produce valid gateway links */
+function isRealCid(cid: string): boolean {
+  // Mock CIDs from mock-data.ts all match these patterns
+  if (/^Qm(AuraSci|Agent|XyZ|Ms1|Vt2|Wu3|Ab1|Nr2|Or3|Pr4|De5|St3|Tu4|Uv5|Premium)/.test(cid)) return false;
+  // Mock CIDs from protocol.ts mockIPFSResult
+  if (/^QmAuraSci/.test(cid)) return false;
+  // Very short CIDs are almost certainly fake
+  if (cid.length < 46) return false;
+  return true;
+}
+
+export { isRealCid };
+
 interface Props {
   ipfsCid?: string;
   agentId?: string;
@@ -36,16 +49,23 @@ export default function ProtocolBadges({
     <div className={`flex flex-wrap gap-1.5 ${isSmall ? "text-xs" : ""}`}>
       {/* IPFS Badge */}
       {ipfsCid && (
-        <a
-          href={`https://w3s.link/ipfs/${ipfsCid}`}
-          target="_blank" rel="noopener noreferrer"
-          className="badge-ipfs hover:opacity-80 transition-opacity cursor-pointer"
-          title={ipfsCid}
-        >
-          <Database className="w-3 h-3" />
-          IPFS {ipfsCid.slice(0, 8)}…
-          <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
-        </a>
+        isRealCid(ipfsCid) ? (
+          <a
+            href={`https://w3s.link/ipfs/${ipfsCid}`}
+            target="_blank" rel="noopener noreferrer"
+            className="badge-ipfs hover:opacity-80 transition-opacity cursor-pointer"
+            title={ipfsCid}
+          >
+            <Database className="w-3 h-3" />
+            IPFS {ipfsCid.slice(0, 8)}…
+            <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+          </a>
+        ) : (
+          <span className="badge-ipfs" title={`Demo CID: ${ipfsCid}`}>
+            <Database className="w-3 h-3" />
+            IPFS {ipfsCid.slice(0, 8)}…
+          </span>
+        )
       )}
 
       {/* ERC-8004 Badge */}
